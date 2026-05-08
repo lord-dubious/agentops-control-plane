@@ -9,7 +9,7 @@ def test_repository_seed_is_idempotent(tmp_path: Path) -> None:
     repository.ensure_seeded()
     repository.ensure_seeded()
 
-    assert len(repository.list_runs()) == 4
+    assert len(repository.list_runs()) == 14
 
 
 def test_repository_returns_full_run_detail(tmp_path: Path) -> None:
@@ -31,6 +31,6 @@ def test_metrics_include_failed_tool_rate(tmp_path: Path) -> None:
 
     summary = repository.metrics_summary()
 
-    assert summary.run_count == 4
+    assert summary.run_count == 14
     assert summary.tool_failure_rate > 0
     assert summary.average_latency_ms > 0

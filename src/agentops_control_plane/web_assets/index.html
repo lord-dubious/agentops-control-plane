@@ -37,6 +37,16 @@
             <h2>Observed agents</h2>
           </div>
           <div class="run-list" id="run-list"></div>
+
+          <div class="import-panel">
+            <p class="eyebrow">Local ingestion</p>
+            <h3>Import trace</h3>
+            <textarea id="import-json" spellcheck="false" placeholder='{"run": {...}, "trace": [...]}'></textarea>
+            <div class="import-actions">
+              <button class="button primary small" id="import-btn" type="button">Import Run</button>
+              <span id="import-status" class="status-msg"></span>
+            </div>
+          </div>
         </aside>
 
         <section class="panel detail-panel reveal" aria-live="polite">

@@ -6,7 +6,13 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from agentops_control_plane.models import AgentRun, MetricsSummary, RunDetail
+from agentops_control_plane.models import (
+    AgentRun,
+    MetricsSummary,
+    RunDetail,
+    TraceImportRequest,
+    TraceImportResult,
+)
 from agentops_control_plane.repository import AgentOpsRepository
 
 router = APIRouter(prefix="/api", tags=["agentops"])
@@ -40,6 +46,19 @@ def get_run(run_id: str, repository: RepositoryDep) -> RunDetail:
 @router.get("/metrics/summary", response_model=MetricsSummary)
 def metrics_summary(repository: RepositoryDep) -> MetricsSummary:
     return repository.metrics_summary()
+
+
+@router.post("/runs/import", response_model=TraceImportResult)
+def import_run(payload: TraceImportRequest, repository: RepositoryDep) -> TraceImportResult:
+    detail = payload.to_run_detail()
+    repository.import_run_detail(detail)
+    return TraceImportResult(
+        run_id=detail.run.id,
+        trace_events=len(detail.trace),
+        tool_calls=len(detail.tool_calls),
+        evaluations=len(detail.evaluations),
+        summary=repository.metrics_summary(),
+    )
 
 
 @router.post("/demo/reset", response_model=MetricsSummary)

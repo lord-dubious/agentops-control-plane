@@ -86,26 +86,121 @@ async function selectRun(runId) {
   renderDetail(await getJson(`/api/runs/${runId}`));
 }
 
-async function loadDashboard() {
-  const [summary, runs] = await Promise.all([
-    getJson('/api/metrics/summary'),
-    getJson('/api/runs'),
-  ]);
-  state.runs = runs;
-  state.activeRunId = runs[0]?.id;
-  renderMetrics(summary);
-  renderRuns();
-  if (state.activeRunId) {
-    await selectRun(state.activeRunId);
+async function loadDashboard(preferredRunId = null) {
+  try {
+    const [summary, runs] = await Promise.all([
+      getJson('/api/metrics/summary'),
+      getJson('/api/runs'),
+    ]);
+    state.runs = runs;
+    renderMetrics(summary);
+    renderRuns();
+
+    // Default to first run if available and none active
+    const preferredExists = runs.some((run) => run.id === preferredRunId);
+    const activeExists = runs.some((run) => run.id === state.activeRunId);
+    if (preferredExists) {
+      await selectRun(preferredRunId);
+    } else if (activeExists) {
+      await selectRun(state.activeRunId);
+    } else if (runs.length > 0) {
+      await selectRun(runs[0].id);
+    }
+  } catch (err) {
+    console.error('Failed to load dashboard:', err);
   }
 }
 
-document.querySelector('#reset-demo').addEventListener('click', async () => {
-  await getJson('/api/demo/reset', { method: 'POST' });
-  await loadDashboard();
-});
+const SAMPLE_IMPORT = {
+  run: {
+    id: 'run_local_import_001',
+    agent_name: 'Local Trace Agent',
+    task: 'Replay a LangGraph-style trace export through the local importer',
+    status: 'completed',
+    started_at: '2026-05-08T10:00:00Z',
+    ended_at: '2026-05-08T10:01:12Z',
+    total_cost_usd: 0.012,
+    total_latency_ms: 72000,
+    retry_count: 0,
+    error_count: 0,
+    score: 0.91
+  },
+  trace: [
+    {
+      id: 'trace_local_001',
+      timestamp: '2026-05-08T10:00:04Z',
+      event_type: 'thought',
+      message: 'Plan trace replay and identify required evidence.',
+      metadata: { framework: 'langgraph', node: 'planner' }
+    },
+    {
+      id: 'trace_local_002',
+      timestamp: '2026-05-08T10:00:18Z',
+      event_type: 'tool_call',
+      message: 'Called repository search node.',
+      metadata: { framework: 'langgraph', node: 'research', tool: 'repo_search' }
+    }
+  ],
+  tool_calls: [
+    {
+      id: 'tool_local_001',
+      tool_name: 'repo_search',
+      input_summary: 'Search risk-related code paths',
+      output_summary: 'Found config and API boundaries',
+      latency_ms: 820,
+      status: 'success',
+      error_message: null
+    }
+  ],
+  evaluations: [
+    {
+      id: 'eval_local_correctness',
+      criterion: 'correctness',
+      score: 0.91,
+      explanation: 'Grounded in imported trace evidence.'
+    }
+  ]
+};
 
-loadDashboard().catch((error) => {
-  document.querySelector('#detail-title').textContent = 'Dashboard failed to load';
-  document.querySelector('#detail-task').textContent = error.message;
+function initImportUI() {
+  const textarea = document.querySelector('#import-json');
+  const btn = document.querySelector('#import-btn');
+  const status = document.querySelector('#import-status');
+
+  if (textarea) {
+    textarea.value = JSON.stringify(SAMPLE_IMPORT, null, 2);
+  }
+
+  btn?.addEventListener('click', async () => {
+    status.textContent = 'Importing...';
+    status.className = 'status-msg';
+
+    try {
+      const payload = JSON.parse(textarea.value);
+      const result = await getJson('/api/runs/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      status.textContent = 'Success';
+      status.className = 'status-msg success';
+
+      await loadDashboard(payload.run.id);
+    } catch (err) {
+      status.textContent = 'Failed';
+      status.className = 'status-msg error';
+      console.error('Import error:', err);
+    }
+  });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  loadDashboard();
+  initImportUI();
+
+  document.querySelector('#reset-demo').addEventListener('click', async () => {
+    await getJson('/api/demo/reset', { method: 'POST' });
+    await loadDashboard();
+  });
 });

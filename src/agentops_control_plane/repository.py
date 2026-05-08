@@ -86,6 +86,19 @@ class AgentOpsRepository:
             self._insert_tool_calls(conn, demo_data.demo_tool_calls())
             self._insert_evaluations(conn, demo_data.demo_evaluations())
 
+    def import_run_detail(self, detail: RunDetail) -> None:
+        """Replace one run and its child rows in a single local transaction."""
+        self.initialize()
+        run_id = detail.run.id
+        with self.connect() as conn:
+            for table in ("evaluations", "tool_calls", "trace_events"):
+                conn.execute(f"DELETE FROM {table} WHERE run_id = ?", (run_id,))
+            conn.execute("DELETE FROM runs WHERE id = ?", (run_id,))
+            self._insert_runs(conn, [detail.run.model_dump()])
+            self._insert_trace_events(conn, [event.model_dump() for event in detail.trace])
+            self._insert_tool_calls(conn, [tool.model_dump() for tool in detail.tool_calls])
+            self._insert_evaluations(conn, [score.model_dump() for score in detail.evaluations])
+
     def ensure_seeded(self) -> None:
         self.initialize()
         with self.connect() as conn:

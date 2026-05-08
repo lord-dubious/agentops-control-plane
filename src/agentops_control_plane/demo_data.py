@@ -8,8 +8,131 @@ from typing import Any
 BASE_TIME = datetime(2026, 5, 8, 9, 0, tzinfo=UTC)
 
 
+def _portfolio_runs() -> list[dict[str, Any]]:
+    projects = [
+        (
+            "run_portfolio_malware_001",
+            "Malware Analysis Pipeline Agent",
+            "Review Cuckoo, Magika, Gemini, and YARA degraded-mode boundaries",
+            "completed",
+            3,
+            0.031,
+            94_500,
+            0.91,
+        ),
+        (
+            "run_portfolio_k8s_001",
+            "Kubernetes Policy Agent",
+            "Inspect NetworkPolicy generation metadata and GitOps dry-run state",
+            "completed",
+            6,
+            0.026,
+            88_200,
+            0.9,
+        ),
+        (
+            "run_portfolio_contract_001",
+            "Smart Contract Auditor Agent",
+            "Audit Slither, Gemini enrichment, and Foundry verification fallbacks",
+            "completed",
+            9,
+            0.034,
+            111_700,
+            0.89,
+        ),
+        (
+            "run_portfolio_siem_001",
+            "SIEM Enrichment Agent",
+            "Inspect Redis degradation metadata and firewall suggestion review gates",
+            "completed",
+            12,
+            0.022,
+            79_900,
+            0.88,
+        ),
+        (
+            "run_portfolio_swarm_001",
+            "Coding Swarm Review Agent",
+            "Review generated-code provenance and Docker sandbox execution metadata",
+            "retried",
+            15,
+            0.041,
+            142_400,
+            0.84,
+        ),
+        (
+            "run_portfolio_video_001",
+            "Semantic Video Search Agent",
+            "Inspect LanceDB dependency boundaries and explicit in-memory test store usage",
+            "completed",
+            18,
+            0.019,
+            73_250,
+            0.87,
+        ),
+        (
+            "run_portfolio_voice_001",
+            "Realtime Voice Agent",
+            "Review explicit Gemini mock mode, VAD fallback, and TTS error metadata",
+            "completed",
+            21,
+            0.024,
+            97_300,
+            0.86,
+        ),
+        (
+            "run_portfolio_research_001",
+            "Research Team Agent",
+            "Inspect SearXNG, FlashRank, and Gemini fallback provenance in reports",
+            "completed",
+            24,
+            0.029,
+            105_600,
+            0.89,
+        ),
+        (
+            "run_portfolio_pentest_001",
+            "Cognitive Pentesting Agent",
+            "Review authorization guardrails and OWASP ZAP phase failure handling",
+            "completed",
+            27,
+            0.028,
+            99_800,
+            0.9,
+        ),
+        (
+            "run_portfolio_data_001",
+            "Autonomous Data Analyst Agent",
+            "Inspect DuckDB load metadata and Pydantic AI degraded analysis boundaries",
+            "completed",
+            30,
+            0.018,
+            69_400,
+            0.88,
+        ),
+    ]
+    rows: list[dict[str, Any]] = []
+    for run_id, agent_name, task, status, offset, cost, latency, score in projects:
+        rows.append(
+            {
+                "id": run_id,
+                "agent_name": agent_name,
+                "task": task,
+                "status": status,
+                "started_at": BASE_TIME - timedelta(minutes=offset),
+                "ended_at": BASE_TIME - timedelta(minutes=offset) + timedelta(milliseconds=latency),
+                "total_cost_usd": cost,
+                "total_latency_ms": latency,
+                "retry_count": 1 if status == "retried" else 0,
+                "error_count": 1 if status == "retried" else 0,
+                "score": score,
+            }
+        )
+    return rows
+
+
 def demo_runs() -> list[dict[str, Any]]:
-    return [
+    base_runs = [
         {
             "id": "run_soc_triage_001",
             "agent_name": "SOC Triage Agent",
@@ -63,6 +186,7 @@ def demo_runs() -> list[dict[str, Any]]:
             "score": 0.41,
         },
     ]
+    return base_runs + _portfolio_runs()
 
 
 def demo_trace_events() -> list[dict[str, Any]]:
@@ -123,7 +247,7 @@ def demo_trace_events() -> list[dict[str, Any]]:
 
 
 def demo_tool_calls() -> list[dict[str, Any]]:
-    return [
+    rows = [
         {
             "id": "tool_001",
             "run_id": "run_soc_triage_001",
@@ -165,6 +289,34 @@ def demo_tool_calls() -> list[dict[str, Any]]:
             "error_message": "table revenue_events does not exist",
         },
     ]
+    for run in _portfolio_runs():
+        rows.extend(
+            [
+                {
+                    "id": f"{run['id']}_tool_repo_review",
+                    "run_id": run["id"],
+                    "tool_name": "portfolio_repo_review",
+                    "input_summary": "Inspect merged PRs, README, docs, and CI status",
+                    "output_summary": "Found portfolio hardening evidence and reviewable boundaries",
+                    "latency_ms": 820,
+                    "status": "success",
+                    "error_message": None,
+                },
+                {
+                    "id": f"{run['id']}_tool_ci_check",
+                    "run_id": run["id"],
+                    "tool_name": "github_checks",
+                    "input_summary": "Read latest CI and merge state for the project",
+                    "output_summary": "Confirmed checks, PR history, and remaining limitations",
+                    "latency_ms": 640,
+                    "status": "failed" if run["status"] == "retried" else "success",
+                    "error_message": "Initial review needed a retry for sandbox metadata"
+                    if run["status"] == "retried"
+                    else None,
+                },
+            ]
+        )
+    return rows
 
 
 def demo_evaluations() -> list[dict[str, Any]]:

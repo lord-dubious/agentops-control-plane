@@ -108,6 +108,69 @@ class RunDetail(BaseModel):
     evaluations: list[EvaluationScore]
 
 
+class TraceEventImport(BaseModel):
+    """Trace event payload accepted by the local import endpoint."""
+
+    id: str
+    timestamp: datetime
+    event_type: TraceEventType
+    message: str
+    metadata: dict[str, Any] = Field(default_factory=dict)
+
+
+class ToolCallImport(BaseModel):
+    """Tool call payload accepted by the local import endpoint."""
+
+    id: str
+    tool_name: str
+    input_summary: str
+    output_summary: str
+    latency_ms: int = Field(ge=0)
+    status: ToolStatus
+    error_message: str | None = None
+
+
+class EvaluationImport(BaseModel):
+    """Evaluation payload accepted by the local import endpoint."""
+
+    id: str
+    criterion: str
+    score: float = Field(ge=0, le=1)
+    explanation: str
+
+
+class TraceImportRequest(BaseModel):
+    """Local JSON payload for importing one complete agent run trace."""
+
+    run: AgentRun
+    trace: list[TraceEventImport] = Field(default_factory=list)
+    tool_calls: list[ToolCallImport] = Field(default_factory=list)
+    evaluations: list[EvaluationImport] = Field(default_factory=list)
+
+    def to_run_detail(self) -> RunDetail:
+        """Attach the run id to child rows and return the repository model."""
+        run_id = self.run.id
+        return RunDetail(
+            run=self.run,
+            trace=[TraceEvent(run_id=run_id, **event.model_dump()) for event in self.trace],
+            tool_calls=[ToolCall(run_id=run_id, **tool.model_dump()) for tool in self.tool_calls],
+            evaluations=[
+                EvaluationScore(run_id=run_id, **evaluation.model_dump())
+                for evaluation in self.evaluations
+            ],
+        )
+
+
+class TraceImportResult(BaseModel):
+    """Result returned after a local trace import."""
+
+    run_id: str
+    trace_events: int
+    tool_calls: int
+    evaluations: int
+    summary: MetricsSummary
+
+
 def utcnow() -> datetime:
     """Return a timezone-aware timestamp for deterministic seed offsets."""
 
