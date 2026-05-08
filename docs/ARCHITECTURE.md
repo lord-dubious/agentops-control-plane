@@ -1,27 +1,8 @@
-# AgentOps Control Plane
+# Architecture
 
-Local-first control plane for inspecting AI agent runs, trace timelines, tool calls, evaluation scores, retries, and cost/latency metrics.
+AgentOps Control Plane is a local-first observability surface for agentic systems. The current implementation is intentionally small: a FastAPI app, a SQLite repository, deterministic demo data, and a browser dashboard that renders API responses directly.
 
-This project is built as a portfolio-grade AI engineering system: it shows how agentic software can expose operational state without needing paid model APIs for the demo path.
-
-![AgentOps dashboard screenshot](docs/assets/dashboard.png)
-
-## Portfolio Review
-
-- [Architecture guide](docs/ARCHITECTURE.md) explains the service boundaries, database model, and dashboard data flow.
-- [Demo guide](docs/DEMO.md) gives a safe local walkthrough with deterministic seeded data.
-- The screenshot above is generated from the real local dashboard served by this repository.
-
-## What Works Today
-
-- FastAPI backend with typed API responses.
-- SQLite repository seeded with deterministic demo agent runs.
-- Run detail API with trace events, tool calls, and evaluation scores.
-- Metrics API for cost, latency, failure-rate, and quality-score rollups.
-- Browser dashboard for run inspection, trace review, tool failures, and evaluation rollups.
-- CI with Ruff, formatting, compile checks, pytest, and coverage.
-
-## Architecture
+## System Diagram
 
 ```mermaid
 flowchart TB
@@ -82,26 +63,25 @@ flowchart TB
     FutureIngest -. "explicit non-goal for v0.1" .-> API
 ```
 
-## Quick Start
+## Main Components
 
-```bash
-uv sync --extra dev
-uv run uvicorn agentops_control_plane.main:app --reload
-```
+- `src/agentops_control_plane/main.py` builds the FastAPI app, seeds the local repository, mounts static assets, and includes the API and web routers.
+- `src/agentops_control_plane/api.py` defines the typed HTTP surface for health, runs, run detail, metrics, and demo reset.
+- `src/agentops_control_plane/repository.py` owns SQLite schema creation, deterministic seeding, JSON metadata storage, and model hydration.
+- `src/agentops_control_plane/models.py` defines the run, trace, tool-call, evaluation, metrics, and detail response contracts.
+- `src/agentops_control_plane/web_assets/` contains the browser dashboard that fetches JSON from the API and renders the operator view.
 
-Open `http://127.0.0.1:8000` for the dashboard or `http://127.0.0.1:8000/docs` to inspect the API.
+## Data Flow
 
-## API Surface
+1. `create_app()` builds an `AgentOpsRepository` from `Settings` and stores it on `app.state`.
+2. `ensure_seeded()` loads deterministic agent runs when the local SQLite database is empty.
+3. The dashboard loads `/api/metrics/summary` and `/api/runs` on page start.
+4. Selecting a run loads `/api/runs/{run_id}` and renders the trace timeline, tool calls, and evaluation bars.
+5. `POST /api/demo/reset` clears and reseeds the local database so the demo can be restored during interviews.
 
-- `GET /api/health`
-- `GET /api/runs`
-- `GET /api/runs/{run_id}`
-- `GET /api/metrics/summary`
-- `POST /api/demo/reset`
+## Review Boundaries
 
-## Current Limits
-
-- Demo data is deterministic and local-only.
-- No real provider keys are required or used.
-- The repository currently focuses on observability, seeded traces, and dashboard review. Live provider ingestion is a future extension.
-- SQLite is intentionally used for a lightweight demo path; production deployments would need migrations, auth, and multi-tenant storage controls.
+- The current repo is a local observability demo. It does not ingest live OpenAI, Anthropic, LangGraph, or CrewAI traces yet.
+- No model provider key is required for the seeded demo path.
+- SQLite keeps setup simple for portfolio review. A production service would add auth, migrations, background ingestion, tenant isolation, and retention policies.
+- The dashboard is intentionally dependency-light: static HTML, CSS, and JavaScript served by FastAPI.
