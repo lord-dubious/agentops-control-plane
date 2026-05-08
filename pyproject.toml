@@ -29,6 +29,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/agentops_control_plane"]
+artifacts = ["src/agentops_control_plane/web_assets/*"]
 
 [tool.ruff]
 target-version = "py311"

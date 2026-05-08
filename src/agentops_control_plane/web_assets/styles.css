@@ -1,0 +1,279 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;700&family=Outfit:wght@500;700;800&display=swap");
+
+:root {
+  color-scheme: dark;
+  --bg: #071011;
+  --panel: rgba(11, 23, 24, 0.82);
+  --panel-strong: rgba(16, 34, 36, 0.96);
+  --line: rgba(120, 255, 214, 0.18);
+  --text: #edfdf7;
+  --muted: #94b8af;
+  --accent: #39ffb6;
+  --amber: #ffcc66;
+  --red: #ff6b7a;
+  --blue: #82b7ff;
+  --shadow: 0 30px 90px rgba(0, 0, 0, 0.42);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 12%, rgba(57, 255, 182, 0.18), transparent 32rem),
+    radial-gradient(circle at 86% 4%, rgba(130, 183, 255, 0.18), transparent 28rem),
+    linear-gradient(135deg, #04100f 0%, #081415 48%, #0f151b 100%);
+  color: var(--text);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent 82%);
+}
+
+.shell {
+  width: min(1440px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 32px 0 48px;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(20px);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 32px;
+  align-items: end;
+  min-height: 360px;
+  padding: 42px;
+  border-radius: 34px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::after {
+  content: "TRACE / TOOL / EVAL / COST";
+  position: absolute;
+  right: -62px;
+  top: 32px;
+  color: rgba(255,255,255,0.06);
+  font-family: "Outfit", sans-serif;
+  font-size: 88px;
+  font-weight: 800;
+  letter-spacing: -0.06em;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  margin: 0 0 10px;
+  text-transform: uppercase;
+}
+
+h1, h2, h3 {
+  font-family: "Outfit", sans-serif;
+  margin: 0;
+  letter-spacing: -0.04em;
+}
+
+h1 {
+  max-width: 780px;
+  font-size: clamp(3rem, 8vw, 7.5rem);
+  line-height: 0.86;
+}
+
+h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); }
+h3 { margin: 24px 0 12px; font-size: 1rem; color: #cffff0; }
+
+.hero-copy {
+  max-width: 760px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+
+.button {
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 999px;
+  color: var(--text);
+  background: rgba(255,255,255,0.06);
+  padding: 12px 18px;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button.primary {
+  color: #03120f;
+  background: var(--accent);
+  border-color: var(--accent);
+  font-weight: 700;
+}
+
+.signal-card {
+  display: grid;
+  gap: 10px;
+  padding: 22px;
+  border-radius: 24px;
+  background: rgba(2, 14, 12, 0.72);
+  border: 1px solid rgba(57,255,182,0.28);
+  z-index: 1;
+}
+
+.signal-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 28px var(--accent);
+}
+
+.signal-card small, .muted { color: var(--muted); line-height: 1.55; }
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 18px 0;
+}
+
+.metric-card {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(7, 18, 19, 0.76);
+}
+
+.metric-card span { display: block; color: var(--muted); font-size: 0.78rem; }
+.metric-card strong { display: block; margin-top: 10px; font-family: "Outfit"; font-size: 2rem; }
+
+.workspace {
+  display: grid;
+  grid-template-columns: 370px 1fr;
+  gap: 18px;
+}
+
+.run-list-panel, .detail-panel { border-radius: 30px; padding: 24px; }
+
+.run-list { display: grid; gap: 12px; margin-top: 18px; }
+
+.run-card {
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px;
+  background: rgba(255,255,255,0.045);
+  padding: 16px;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.run-card:hover, .run-card.active {
+  border-color: rgba(57,255,182,0.55);
+  background: rgba(57,255,182,0.08);
+  transform: translateY(-2px);
+}
+
+.run-card strong { display: block; margin-bottom: 8px; }
+.run-card small { color: var(--muted); }
+
+.status {
+  display: inline-flex;
+  margin-top: 12px;
+  border-radius: 999px;
+  padding: 4px 9px;
+  font-size: 0.72rem;
+  color: #05100f;
+  background: var(--accent);
+  font-weight: 700;
+}
+.status.failed { background: var(--red); color: white; }
+.status.retried { background: var(--amber); color: #171000; }
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+}
+
+.score-ring {
+  display: grid;
+  place-items: center;
+  min-width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 10px solid rgba(57,255,182,0.22);
+  outline: 1px solid var(--line);
+  font-family: "Outfit";
+  font-size: 1.55rem;
+  font-weight: 800;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 22px;
+}
+
+.timeline, .tool-stack, .eval-stack { display: grid; gap: 12px; }
+
+.timeline-item, .tool-card, .eval-card {
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.045);
+  border-radius: 18px;
+  padding: 14px;
+}
+
+.timeline-item { border-left: 4px solid var(--blue); }
+.timeline-item.error, .tool-card.failed { border-color: rgba(255,107,122,0.6); }
+.timeline-item.retry { border-left-color: var(--amber); }
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.eval-bar {
+  height: 9px;
+  border-radius: 999px;
+  margin-top: 10px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.08);
+}
+
+.eval-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--blue));
+}
+
+.reveal { animation: rise 620ms ease both; }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 980px) {
+  .hero, .workspace, .columns, .metrics-grid { grid-template-columns: 1fr; }
+  .shell { width: min(100% - 28px, 1440px); }
+  h1 { font-size: 3.4rem; }
+}
