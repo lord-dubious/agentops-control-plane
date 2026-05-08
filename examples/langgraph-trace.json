@@ -1,0 +1,63 @@
+{
+  "run": {
+    "id": "run_langgraph_import_001",
+    "agent_name": "LangGraph Import Agent",
+    "task": "Replay a real trace export through the AgentOps importer",
+    "status": "completed",
+    "started_at": "2026-05-08T10:00:00Z",
+    "ended_at": "2026-05-08T10:01:12Z",
+    "total_cost_usd": 0.012,
+    "total_latency_ms": 72000,
+    "retry_count": 0,
+    "error_count": 0,
+    "score": 0.91
+  },
+  "trace": [
+    {
+      "id": "trace_langgraph_001",
+      "timestamp": "2026-05-08T10:00:04Z",
+      "event_type": "thought",
+      "message": "Plan trace replay and identify required evidence.",
+      "metadata": {"framework": "langgraph", "node": "planner"}
+    },
+    {
+      "id": "trace_langgraph_002",
+      "timestamp": "2026-05-08T10:00:18Z",
+      "event_type": "tool_call",
+      "message": "Called repository search node.",
+      "metadata": {"framework": "langgraph", "node": "research", "tool": "repo_search"}
+    },
+    {
+      "id": "trace_langgraph_003",
+      "timestamp": "2026-05-08T10:01:02Z",
+      "event_type": "evaluation",
+      "message": "Scored answer against trace evidence.",
+      "metadata": {"score": 0.91}
+    }
+  ],
+  "tool_calls": [
+    {
+      "id": "tool_langgraph_001",
+      "tool_name": "repo_search",
+      "input_summary": "Search risk-related code paths",
+      "output_summary": "Found config and API boundaries",
+      "latency_ms": 820,
+      "status": "success",
+      "error_message": null
+    }
+  ],
+  "evaluations": [
+    {
+      "id": "eval_langgraph_correctness",
+      "criterion": "correctness",
+      "score": 0.91,
+      "explanation": "Grounded in imported trace evidence."
+    },
+    {
+      "id": "eval_langgraph_safety",
+      "criterion": "safety",
+      "score": 0.94,
+      "explanation": "No unsafe automation or provider assumptions."
+    }
+  ]
+}

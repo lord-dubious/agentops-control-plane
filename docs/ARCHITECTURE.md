@@ -21,14 +21,15 @@ flowchart TB
 
     subgraph FastAPI[FastAPI Application]
         Web[Web router<br/>serves dashboard assets]:::api
-        API[API router<br/>/api/runs, /api/metrics, /api/demo/reset]:::api
+        API[API router<br/>/api/runs, /api/runs/import, /api/metrics]:::api
         AppState[Application state<br/>repository dependency]:::core
     end
 
     subgraph Repository[Local Repository Boundary]
         Repo[AgentOpsRepository<br/>sqlite3 adapter]:::core
         Schema[Tables<br/>runs, trace_events, tool_calls, evaluations]:::store
-        Seed[Deterministic demo seed<br/>offline agent run examples]:::store
+        Seed[Deterministic demo seed<br/>offline portfolio run examples]:::store
+        Import[Local JSON trace import<br/>validated with Pydantic]:::store
     end
 
     subgraph OperationalViews[Reviewable AgentOps Views]
@@ -41,7 +42,7 @@ flowchart TB
 
     subgraph Boundaries[Current Boundaries]
         LocalOnly[Local-first demo data<br/>no provider keys required]:::boundary
-        FutureIngest[Future ingestion API<br/>not wired to live providers yet]:::boundary
+        LiveProviders[Live provider ingestion<br/>future extension, not required]:::boundary
     end
 
     UI -- "fetch JSON" --> API
@@ -51,6 +52,7 @@ flowchart TB
     AppState -- "query commands" --> Repo
     Repo -- "creates and reads" --> Schema
     Seed -- "idempotent reset" --> Schema
+    Import -- "replace one run" --> Schema
     Schema -- "hydrates" --> Runs
     Schema -- "hydrates" --> Trace
     Schema -- "hydrates" --> Tools
@@ -60,13 +62,13 @@ flowchart TB
     Tools -- "shown in" --> Detail
     Eval -- "shown in" --> Detail
     LocalOnly -. "documents demo scope" .-> Seed
-    FutureIngest -. "explicit non-goal for v0.1" .-> API
+    LiveProviders -. "explicit non-goal for v0.1" .-> API
 ```
 
 ## Main Components
 
 - `src/agentops_control_plane/main.py` builds the FastAPI app, seeds the local repository, mounts static assets, and includes the API and web routers.
-- `src/agentops_control_plane/api.py` defines the typed HTTP surface for health, runs, run detail, metrics, and demo reset.
+- `src/agentops_control_plane/api.py` defines the typed HTTP surface for health, runs, run detail, metrics, local trace import, and demo reset.
 - `src/agentops_control_plane/repository.py` owns SQLite schema creation, deterministic seeding, JSON metadata storage, and model hydration.
 - `src/agentops_control_plane/models.py` defines the run, trace, tool-call, evaluation, metrics, and detail response contracts.
 - `src/agentops_control_plane/web_assets/` contains the browser dashboard that fetches JSON from the API and renders the operator view.
@@ -77,11 +79,18 @@ flowchart TB
 2. `ensure_seeded()` loads deterministic agent runs when the local SQLite database is empty.
 3. The dashboard loads `/api/metrics/summary` and `/api/runs` on page start.
 4. Selecting a run loads `/api/runs/{run_id}` and renders the trace timeline, tool calls, and evaluation bars.
-5. `POST /api/demo/reset` clears and reseeds the local database so the demo can be restored during interviews.
+5. `POST /api/runs/import` validates one local JSON trace, attaches the run id to child rows, and replaces that run transactionally in SQLite.
+6. `POST /api/demo/reset` clears and reseeds the local database so the demo can be restored during interviews.
+
+## Local Import Boundary
+
+The import endpoint is designed for local trace exports from agent frameworks. It accepts one run plus optional trace events, tool calls, and evaluation scores. This gives reviewers a realistic extension point without introducing provider SDKs, queues, background workers, or paid APIs.
+
+Imported runs are stored with the same `AgentRun`, `TraceEvent`, `ToolCall`, and `EvaluationScore` models used by seeded demo data, so they immediately appear in the dashboard and metrics rollups.
 
 ## Review Boundaries
 
-- The current repo is a local observability demo. It does not ingest live OpenAI, Anthropic, LangGraph, or CrewAI traces yet.
+- The current repo is a local observability demo. It can import local JSON trace exports, but it does not subscribe to live OpenAI, Anthropic, LangGraph, or CrewAI provider webhooks yet.
 - No model provider key is required for the seeded demo path.
 - SQLite keeps setup simple for portfolio review. A production service would add auth, migrations, background ingestion, tenant isolation, and retention policies.
 - The dashboard is intentionally dependency-light: static HTML, CSS, and JavaScript served by FastAPI.
