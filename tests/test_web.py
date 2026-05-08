@@ -14,6 +14,8 @@ def test_dashboard_renders_shell(tmp_path: Path) -> None:
     assert response.status_code == 200
     assert "AgentOps Control Plane" in response.text
     assert "metrics-grid" in response.text
+    assert "import-panel" in response.text
+    assert "Import Run" in response.text
 
 
 def test_static_assets_are_served(tmp_path: Path) -> None:
@@ -24,5 +26,7 @@ def test_static_assets_are_served(tmp_path: Path) -> None:
 
     assert css.status_code == 200
     assert "mission" in css.text.lower() or "signal-card" in css.text
+    assert "import-panel" in css.text
     assert js.status_code == 200
     assert "loadDashboard" in js.text
+    assert "SAMPLE_IMPORT" in js.text
