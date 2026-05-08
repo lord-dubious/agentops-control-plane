@@ -11,6 +11,7 @@ This project is designed as a portfolio-grade AI engineering system: it demonstr
 - Run detail API with trace events, tool calls, and evaluation scores
 - Metrics API for cost, latency, failure-rate, and quality-score rollups
 - CI with Ruff, formatting, compile checks, pytest, and coverage
+- Browser dashboard for run inspection, trace review, tool failures, and evaluation rollups
 
 ## Quick Start
 
@@ -19,7 +20,7 @@ uv sync --extra dev
 uv run uvicorn agentops_control_plane.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000/docs` to inspect the API.
+Open `http://127.0.0.1:8000` for the dashboard or `http://127.0.0.1:8000/docs` to inspect the API.
 
 ## API Surface
 
